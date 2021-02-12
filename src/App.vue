@@ -14,6 +14,7 @@
       :songs="songs"
       :currentSong="currentSong"
       @handlePlay="handlePlay"
+      @handleDelete="handleDelete"
     />
   </div>
 </template>
@@ -21,6 +22,7 @@
 <script>
 import CurrentSong from "./components/CurrentSong";
 import SongList from "./components/SongList";
+import _ from "lodash"
 
 export default {
   name: "App",
@@ -30,12 +32,36 @@ export default {
   },
   methods: {
     handlePlay: function (payload) {
+      if (this.audioElement == null) {
+        this.audioElement = new Audio(payload.music_url);
+        this.audioElement.play()
+      }else {
+        if (payload == this.currentSong) {
+          if(this.audioElement.paused) {
+            this.audioElement.play()
+          }else {
+            this.audioElement.pause();
+          }
+        }else {;
+          this.audioElement.src = payload.music_url;
+          this.audioElement.play()
+        }
+      }
       this.currentSong = payload;
+      this.audioElement.addEventListener("ended", () => {
+        this.currentSong = null;
+        this.audioElement = null;
+      })
     },
+    handleDelete: function (payload) {
+      const updatedArray = _.without(this.songs, payload);
+      this.songs = updatedArray
+    }
   },
   data() {
     return {
       // showDescription: true,
+      audioElement: null,
       currentSong: null,
       songs: [
         {
